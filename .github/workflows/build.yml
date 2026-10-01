@@ -1,0 +1,26 @@
+name: Build Daytona PC Port
+on: [workflow_dispatch]
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Build CodeGen and Game
+        run: |
+          cmake --preset win-amd64
+          cmake --build --preset win-amd64 --target daytona_codegen
+          cmake --build --preset win-amd64 --config Release
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: daytona-usa-pc-port
+          path: build/win-amd64/Release/
