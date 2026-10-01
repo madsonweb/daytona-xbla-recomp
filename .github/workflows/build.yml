@@ -5,7 +5,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # Allows you to manually trigger the build from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,23 +15,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        # This is strictly required to fetch the rexglue-sdk and other dependencies
         submodules: recursive
 
+    - name: Apply SSSE3 Compiler Flag
+      working-directory: ./project
+      # Appending to CMakeLists.txt ensures the flag is applied globally 
+      # without accidentally overriding the CMAKE_CXX_FLAGS set by the win-amd64 preset
+      run: Add-Content -Path CMakeLists.txt -Value 'add_compile_options("-mssse3")'
+
     - name: Configure CMake
-      # -S project tells CMake to look inside the "project" folder for CMakePresets.json
       run: cmake --preset win-amd64 -S project
 
     - name: Build
-      # The preset outputs the build files to project/out/build/win-amd64
       run: cmake --build project/out/build/win-amd64 --config Release
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: daytona-windows-build
-        # Uploads the compiled game files so you can download them from GitHub
         path: |
           project/out/build/win-amd64/Release/
-          # If the executable outputs to a different bin folder, add it below:
-          # project/bin/
