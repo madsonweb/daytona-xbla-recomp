@@ -1,26 +1,37 @@
-name: Build Daytona PC Port
-on: [workflow_dispatch]
+name: Build Daytona XBLA Recomp (Windows)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Allows you to manually trigger the build from the Actions tab
 
 jobs:
-  build-windows:
-    runs-on: windows-2022
+  build:
+    runs-on: windows-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # This is strictly required to fetch the rexglue-sdk and other dependencies
+        submodules: recursive
 
-      - name: Set up CMake and Ninja
-        uses: lukka/get-cmake@latest
+    - name: Configure CMake
+      # -S project tells CMake to look inside the "project" folder for CMakePresets.json
+      run: cmake --preset win-amd64 -S project
 
-      - name: Build CodeGen and Game
-        run: |
-          cmake --preset win-amd64
-          cmake --build --preset win-amd64 --target daytona_codegen
-          cmake --build --preset win-amd64 --config Release
+    - name: Build
+      # The preset outputs the build files to project/out/build/win-amd64
+      run: cmake --build project/out/build/win-amd64 --config Release
 
-      - name: Upload Executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: daytona-usa-pc-port
-          path: out/build/win-amd64/Release/
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: daytona-windows-build
+        # Uploads the compiled game files so you can download them from GitHub
+        path: |
+          project/out/build/win-amd64/Release/
+          # If the executable outputs to a different bin folder, add it below:
+          # project/bin/
