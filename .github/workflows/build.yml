@@ -7,26 +7,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Initialize and Update Submodules
-        run: |
-          git submodule init
-          git submodule update --init --recursive --remote
+        with:
+          submodules: recursive
 
       - name: Set up CMake and Ninja
         uses: lukka/get-cmake@latest
 
-      - name: Create Build Directory
-        run: mkdir build
-
       - name: Build CodeGen and Game
         run: |
-          cmake -S . -B build --preset win-amd64
-          cmake --build build --preset win-amd64 --target daytona_codegen
-          cmake --build build --preset win-amd64 --config Release
+          cmake --preset win-amd64
+          cmake --build --preset win-amd64 --target daytona_codegen
+          cmake --build --preset win-amd64 --config Release
 
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
           name: daytona-usa-pc-port
-          path: build/win-amd64/Release/
+          path: out/build/win-amd64/Release/
